@@ -95,3 +95,10 @@ hs_err_pid*
 ### Backup files ###
 *.bak
 *.backup
+
+### Docker ###
+.docker/
+docker-compose.override.yml
+
+### Render ###
+.render/

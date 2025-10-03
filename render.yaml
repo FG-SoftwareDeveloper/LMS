@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: lms-app
+    runtime: docker
+    repo: https://github.com/FG-SoftwareDeveloper/LMS.git  # Update with your actual repo URL
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: ./
+    plan: starter  # or 'standard' for more resources
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: lms-postgres
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: lms-postgres
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: lms-postgres
+          property: password
+
+databases:
+  - name: lms-postgres
+    databaseName: lms_db
+    user: lms_user
+    plan: starter  # Free tier, or 'standard' for production
