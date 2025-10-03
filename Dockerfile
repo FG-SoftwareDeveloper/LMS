@@ -10,6 +10,9 @@ COPY mvnw.cmd .
 COPY .mvn .mvn
 COPY pom.xml .
 
+# Copy .env file if it exists (for local Docker builds)
+COPY .env* ./
+
 # Make mvnw executable
 RUN chmod +x ./mvnw
 
