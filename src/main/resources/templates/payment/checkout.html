@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Checkout - LMS</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+    
+    <style>
+        .checkout-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .payment-card {
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+        }
+        
+        .payment-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .order-summary {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stripe-element {
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background: white;
+            margin-bottom: 1rem;
+        }
+        
+        .stripe-element.StripeElement--focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .stripe-element.StripeElement--invalid {
+            border-color: #dc3545;
+        }
+        
+        .payment-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .payment-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .security-badges {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .processing-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        @media (max-width: 768px) {
+            .checkout-container {
+                padding: 1rem;
+            }
+            
+            .payment-header {
+                padding: 1.5rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="checkout-container">
+        <div class="card payment-card">
+            <!-- Payment Header -->
+            <div class="payment-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1><i class="fas fa-credit-card me-2"></i>Secure Checkout</h1>
+                        <p class="mb-0">Complete your course enrollment</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="display-6 fw-bold">
+                            $<span id="totalAmount" th:text="${payment.amount}">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <!-- Order Summary -->
+                <div class="order-summary">
+                    <h5><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+                    <div class="row mb-2">
+                        <div class="col-8">
+                            <strong th:text="${course.title}">Course Name</strong>
+                        </div>
+                        <div class="col-4 text-end">
+                            $<span th:text="${course.price}">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${payment.discountAmount > 0}" class="row mb-2 text-success">
+                        <div class="col-8">
+                            <i class="fas fa-tag me-1"></i>Discount Applied
+                            <small class="text-muted d-block" th:text="'Code: ' + ${payment.voucherCode}">Code: SAVE20</small>
+                        </div>
+                        <div class="col-4 text-end">
+                            -$<span th:text="${payment.discountAmount}">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div th:if="${payment.taxAmount > 0}" class="row mb-2">
+                        <div class="col-8">Tax</div>
+                        <div class="col-4 text-end">
+                            $<span th:text="${payment.taxAmount}">0.00</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="row fw-bold">
+                        <div class="col-8">Total</div>
+                        <div class="col-4 text-end">
+                            $<span th:text="${payment.amount}">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Form -->
+                <form id="payment-form">
+                    <!-- Error Messages -->
+                    <div id="error-message" class="error-message"></div>
+                    
+                    <!-- Billing Information -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-user me-2"></i>Billing Information</h6>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name *</label>
+                            <input type="text" class="form-control" id="firstName" required 
+                                   th:value="${user.firstName}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" id="lastName" required 
+                                   th:value="${user.lastName}">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" required 
+                                   th:value="${user.email}">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control" id="address" 
+                                   placeholder="Street address">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="city">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="state" class="form-label">State</label>
+                            <input type="text" class="form-control" id="state">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="zip" class="form-label">ZIP</label>
+                            <input type="text" class="form-control" id="zip">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="country" class="form-label">Country</label>
+                            <select class="form-control" id="country">
+                                <option value="US">United States</option>
+                                <option value="CA">Canada</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="AU">Australia</option>
+                                <option value="DE">Germany</option>
+                                <option value="FR">France</option>
+                                <option value="JP">Japan</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Method -->
+                    <div class="mb-4">
+                        <h6><i class="fas fa-credit-card me-2"></i>Payment Method</h6>
+                        
+                        <!-- Card Element -->
+                        <div id="card-element" class="stripe-element">
+                            <!-- Stripe Elements will create form elements here -->
+                        </div>
+                        
+                        <!-- Card errors -->
+                        <div id="card-errors" role="alert" class="text-danger mt-2"></div>
+                    </div>
+                    
+                    <!-- Save Payment Method -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="savePaymentMethod">
+                        <label class="form-check-label" for="savePaymentMethod">
+                            Save payment method for future purchases
+                        </label>
+                    </div>
+                    
+                    <!-- Terms -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="agreeToTerms" required>
+                        <label class="form-check-label" for="agreeToTerms">
+                            I agree to the <a href="#" target="_blank">Terms of Service</a> and 
+                            <a href="#" target="_blank">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <!-- Payment Button -->
+                    <button type="submit" class="btn btn-success payment-button" id="submit-button">
+                        <span class="spinner-border spinner-border-sm me-2" id="payment-spinner" style="display: none;"></span>
+                        <i class="fas fa-lock me-2"></i>
+                        Complete Payment - $<span th:text="${payment.amount}">0.00</span>
+                    </button>
+                    
+                    <!-- Security Information -->
+                    <div class="security-badges">
+                        <div class="text-center">
+                            <i class="fas fa-shield-alt text-success me-2"></i>
+                            <small class="text-muted">256-bit SSL Encrypted</small>
+                        </div>
+                        <div class="text-center">
+                            <i class="fab fa-cc-visa text-primary me-1"></i>
+                            <i class="fab fa-cc-mastercard text-warning me-1"></i>
+                            <i class="fab fa-cc-amex text-primary me-1"></i>
+                            <i class="fab fa-cc-discover text-info"></i>
+                        </div>
+                        <div class="text-center">
+                            <i class="fas fa-university text-primary me-2"></i>
+                            <small class="text-muted">PCI Compliant</small>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Money Back Guarantee -->
+        <div class="text-center mt-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="text-success"><i class="fas fa-money-bill-wave me-2"></i>30-Day Money-Back Guarantee</h6>
+                    <p class="mb-0 text-muted">Not satisfied? Get a full refund within 30 days of enrollment.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Processing Overlay -->
+    <div class="processing-overlay" id="processing-overlay">
+        <div class="processing-content">
+            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+            <h5>Processing Payment...</h5>
+            <p class="text-muted">Please don't close this window</p>
+        </div>
+    </div>
+    
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Payment JavaScript -->
+    <script th:inline="javascript">
+        // Get payment data from server
+        const paymentId = /*[[${payment.id}]]*/ '';
+        const clientSecret = /*[[${payment.stripeClientSecret}]]*/ '';
+        const amount = /*[[${payment.amount}]]*/ 0;
+        const courseId = /*[[${course.id}]]*/ 0;
+        const courseTitle = /*[[${course.title}]]*/ '';
+        
+        // Initialize Stripe
+        const stripe = Stripe('pk_test_your_publishable_key_here'); // Replace with actual key
+        const elements = stripe.elements();
+        
+        // Create card element
+        const cardElement = elements.create('card', {
+            style: {
+                base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+                invalid: {
+                    color: '#9e2146',
+                },
+            }
+        });
+        
+        cardElement.mount('#card-element');
+        
+        // Handle card validation
+        cardElement.on('change', function(event) {
+            const displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+        
+        // Handle form submission
+        const form = document.getElementById('payment-form');
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            const spinner = document.getElementById('payment-spinner');
+            const processingOverlay = document.getElementById('processing-overlay');
+            
+            // Validate form
+            if (!validateForm()) {
+                return;
+            }
+            
+            // Show processing state
+            submitButton.disabled = true;
+            spinner.style.display = 'inline-block';
+            processingOverlay.style.display = 'flex';
+            
+            try {
+                // Create payment method
+                const { paymentMethod, error } = await stripe.createPaymentMethod({
+                    type: 'card',
+                    card: cardElement,
+                    billing_details: {
+                        name: document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
+                        email: document.getElementById('email').value,
+                        address: {
+                            line1: document.getElementById('address').value,
+                            city: document.getElementById('city').value,
+                            state: document.getElementById('state').value,
+                            postal_code: document.getElementById('zip').value,
+                            country: document.getElementById('country').value,
+                        },
+                    },
+                });
+                
+                if (error) {
+                    throw new Error(error.message);
+                }
+                
+                // Confirm payment
+                const { error: confirmError } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: paymentMethod.id
+                });
+                
+                if (confirmError) {
+                    throw new Error(confirmError.message);
+                }
+                
+                // Payment succeeded - update our backend
+                await updatePaymentStatus('succeeded');
+                
+                // Redirect to success page
+                window.location.href = `/enrollment/success?paymentId=${paymentId}`;
+                
+            } catch (error) {
+                console.error('Payment error:', error);
+                showError(error.message);
+                
+                // Update payment status to failed
+                await updatePaymentStatus('failed', error.message);
+                
+            } finally {
+                // Hide processing state
+                submitButton.disabled = false;
+                spinner.style.display = 'none';
+                processingOverlay.style.display = 'none';
+            }
+        });
+        
+        // Validate form
+        function validateForm() {
+            const requiredFields = ['firstName', 'lastName', 'email'];
+            let isValid = true;
+            
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            const agreeToTerms = document.getElementById('agreeToTerms');
+            if (!agreeToTerms.checked) {
+                showError('Please agree to the Terms of Service and Privacy Policy');
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + message;
+            errorDiv.style.display = 'block';
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Hide after 10 seconds
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 10000);
+        }
+        
+        // Update payment status in backend
+        async function updatePaymentStatus(status, errorMessage = null) {
+            try {
+                await fetch(`/payment/update-status/${paymentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: status,
+                        errorMessage: errorMessage,
+                        billingDetails: {
+                            firstName: document.getElementById('firstName').value,
+                            lastName: document.getElementById('lastName').value,
+                            email: document.getElementById('email').value,
+                            address: document.getElementById('address').value,
+                            city: document.getElementById('city').value,
+                            state: document.getElementById('state').value,
+                            zip: document.getElementById('zip').value,
+                            country: document.getElementById('country').value
+                        }
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating payment status:', error);
+            }
+        }
+        
+        // Auto-fill address from IP location (optional)
+        async function autoFillLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                
+                if (data.city) document.getElementById('city').value = data.city;
+                if (data.region) document.getElementById('state').value = data.region;
+                if (data.postal) document.getElementById('zip').value = data.postal;
+                if (data.country_code) document.getElementById('country').value = data.country_code;
+                
+            } catch (error) {
+                console.log('Could not auto-fill location:', error);
+            }
+        }
+        
+        // Load location data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            autoFillLocation();
+            
+            // Focus on first empty required field
+            const firstEmptyField = document.querySelector('input[required]:not([value])');
+            if (firstEmptyField) {
+                firstEmptyField.focus();
+            }
+        });
+        
+        // Handle browser back button
+        window.addEventListener('beforeunload', function(e) {
+            const submitButton = document.getElementById('submit-button');
+            if (submitButton.disabled) {
+                e.preventDefault();
+                e.returnValue = 'Payment is being processed. Are you sure you want to leave?';
+                return e.returnValue;
+            }
+        });
+        
+        // Mobile-specific enhancements
+        if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            // Optimize for mobile keyboards
+            document.getElementById('email').setAttribute('inputmode', 'email');
+            document.getElementById('zip').setAttribute('inputmode', 'numeric');
+            
+            // Add touch feedback
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+                
+                button.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+        }
+        
+        // Analytics tracking (optional)
+        function trackPaymentEvent(eventName, properties = {}) {
+            // Add your analytics tracking here
+            console.log('Payment event:', eventName, properties);
+            
+            // Example for Google Analytics
+            if (typeof gtag !== 'undefined') {
+                gtag('event', eventName, {
+                    'course_id': courseId,
+                    'course_title': courseTitle,
+                    'amount': amount,
+                    ...properties
+                });
+            }
+        }
+        
+        // Track payment start
+        trackPaymentEvent('payment_started', {
+            'payment_id': paymentId
+        });
+        
+    </script>
+</body>
+</html>

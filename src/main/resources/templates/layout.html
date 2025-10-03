@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' - LearnHub' : 'LearnHub - Interactive Learning Platform'}">LearnHub</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    
+    <!-- Additional CSS block for specific pages -->
+    <th:block th:fragment="css"></th:block>
+    
+    <!-- Meta tags -->
+    <meta name="description" th:content="${pageDescription != null ? pageDescription : 'Experience the future of education with our innovative LMS platform that combines comprehensive courses with engaging game-based learning experiences.'}">
+    <meta name="keywords" content="LMS, Learning Management System, Online Learning, Education, Interactive Learning, Game-based Learning">
+    <meta name="author" content="LearnHub">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+<body data-theme="light">
+    <!-- Navigation -->
+    <div th:replace="~{partials/navbar :: navbar}"></div>
+    
+    <!-- Main Content -->
+    <main>
+        <div layout:fragment="content">
+            <!-- Page specific content will be inserted here -->
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <div th:replace="~{partials/footer :: footer}"></div>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/main.js}"></script>
+    
+    <!-- Additional JS block for specific pages -->
+    <th:block th:fragment="javascript"></th:block>
+</body>
+</html>

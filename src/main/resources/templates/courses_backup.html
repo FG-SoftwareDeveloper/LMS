@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - LearnHub</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body data-theme="light">
+    <!-- Navigation -->
+    <div th:replace="~{partials/navbar :: navbar}"></div>
+    
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">Explore Our Courses</h1>
+            <p class="page-subtitle">Discover a wide range of interactive courses designed to enhance your learning journey through gamification.</p>
+        </div>
+    </section>
+    
+    <!-- Course Filters -->
+    <section class="course-filters">
+        <div class="container">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All Courses</button>
+                <button class="filter-tab" data-filter="programming">Programming</button>
+                <button class="filter-tab" data-filter="design">Design</button>
+                <button class="filter-tab" data-filter="business">Business</button>
+                <button class="filter-tab" data-filter="data-science">Data Science</button>
+                <button class="filter-tab" data-filter="marketing">Marketing</button>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" id="courseSearch" placeholder="Search courses..." class="form-control">
+            </div>
+        </div>
+    </section>
+    
+    <!-- Courses Grid -->
+    <section class="courses-section">
+        <div class="container">
+            <div class="courses-grid">
+                <!-- Course Card 1 -->
+                <div class="course-card" data-category="programming" data-course-id="3">
+                    <div class="course-image">
+                        <div class="course-badge">Beginner</div>
+                        <div class="course-category">Programming</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Introduction to Programming</h3>
+                        <p class="course-description">Learn the fundamentals of programming with hands-on exercises and real-world projects.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">8 weeks</span>
+                            <span class="course-students">1,234 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★☆</span>
+                                <span class="rating-score">4.5</span>
+                            </div>
+                            <div class="course-price">Free</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="3">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 2 -->
+                <div class="course-card" data-category="programming" data-course-id="4">
+                    <div class="course-image">
+                        <div class="course-badge">Intermediate</div>
+                        <div class="course-category">Web Development</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">JavaScript & Web Development</h3>
+                        <p class="course-description">Master modern JavaScript and build dynamic web applications with interactive features.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">12 weeks</span>
+                            <span class="course-students">2,156 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★★</span>
+                                <span class="rating-score">4.8</span>
+                            </div>
+                            <div class="course-price">$79.99</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="4">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 3 -->
+                <div class="course-card" data-category="programming" data-course-id="5">
+                    <div class="course-image">
+                        <div class="course-badge">Intermediate</div>
+                        <div class="course-category">Security</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Cybersecurity Fundamentals</h3>
+                        <p class="course-description">Learn essential cybersecurity concepts and protect digital assets from threats.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">10 weeks</span>
+                            <span class="course-students">987 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★★</span>
+                                <span class="rating-score">4.7</span>
+                            </div>
+                            <div class="course-price">$129.99</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="5">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 4 -->
+                <div class="course-card" data-category="programming" data-course-id="6">
+                    <div class="course-image">
+                        <div class="course-badge">Advanced</div>
+                        <div class="course-category">Mobile Development</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Mobile App Development</h3>
+                        <p class="course-description">Create cross-platform mobile applications using modern frameworks and tools.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">16 weeks</span>
+                            <span class="course-students">1,543 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★☆</span>
+                                <span class="rating-score">4.4</span>
+                            </div>
+                            <div class="course-price">$159.99</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="6">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 5 -->
+                <div class="course-card" data-category="design" data-course-id="7">
+                    <div class="course-image">
+                        <div class="course-badge">Beginner</div>
+                        <div class="course-category">Design</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">UI/UX Design Principles</h3>
+                        <p class="course-description">Learn the fundamentals of user interface and user experience design.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">6 weeks</span>
+                            <span class="course-students">2,876 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★☆</span>
+                                <span class="rating-score">4.2</span>
+                            </div>
+                            <div class="course-price">Free</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="7">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 6 -->
+                <div class="course-card" data-category="business" data-course-id="8">
+                    <div class="course-image">
+                        <div class="course-badge">Intermediate</div>
+                        <div class="course-category">Management</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Project Management</h3>
+                        <p class="course-description">Master project management methodologies and lead successful projects.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">8 weeks</span>
+                            <span class="course-students">1,678 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★★</span>
+                                <span class="rating-score">4.6</span>
+                            </div>
+                            <div class="course-price">$89.99</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="8">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 7 -->
+                <div class="course-card" data-category="programming" data-course-id="1">
+                    <div class="course-image">
+                        <div class="course-badge">Beginner</div>
+                        <div class="course-category">Programming</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Java Fundamentals</h3>
+                        <p class="course-description">Learn the basics of Java programming with comprehensive examples.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">10 weeks</span>
+                            <span class="course-students">3,421 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★☆</span>
+                                <span class="rating-score">4.5</span>
+                            </div>
+                            <div class="course-price">$99.99</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="1">Enroll Now</button>
+                    </div>
+                </div>
+                
+                <!-- Course Card 8 -->
+                <div class="course-card" data-category="programming" data-course-id="2">
+                    <div class="course-image">
+                        <div class="course-badge">Advanced</div>
+                        <div class="course-category">Framework</div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Advanced Spring Boot</h3>
+                        <p class="course-description">Master Spring Boot framework development with advanced techniques.</p>
+                        <div class="course-meta">
+                            <span class="course-duration">14 weeks</span>
+                            <span class="course-students">1,892 students</span>
+                        </div>
+                        <div class="course-stats">
+                            <div class="rating">
+                                <span>★★★★★</span>
+                                <span class="rating-score">4.8</span>
+                            </div>
+                            <div class="course-price">$149.99</div>
+                        </div>
+                        <button class="btn btn-primary enroll-btn" data-course-id="2">Enroll Now</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Start Learning?</h2>
+                <p>Join thousands of students already learning with us. Start your journey today!</p>
+                <a href="#" class="btn btn-primary btn-lg">Browse All Courses</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <div th:replace="~{partials/footer :: footer}"></div>
+    
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter functionality
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const courseCards = document.querySelectorAll('.course-card');
+            
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    const filter = tab.getAttribute('data-filter');
+                    
+                    courseCards.forEach(card => {
+                        if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('courseSearch');
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                courseCards.forEach(card => {
+                    const title = card.querySelector('.course-title').textContent.toLowerCase();
+                    const description = card.querySelector('.course-description').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Enroll button functionality
+            document.querySelectorAll('.enroll-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handleEnrollment(btn);
+                });
+            });
+            
+            // Enrollment handler function
+            async function handleEnrollment(button) {
+                const courseId = button.getAttribute('data-course-id');
+                
+                if (!courseId) {
+                    showMessage('Unable to determine course ID', 'error');
+                    return;
+                }
+                
+                // Check if user is logged in
+                const userMenu = document.querySelector('.user-menu');
+                if (!userMenu) {
+                    showMessage('Please log in to enroll in courses', 'warning');
+                    window.location.href = '/login';
+                    return;
+                }
+                
+                // Store original button state
+                const originalText = button.textContent;
+                button.textContent = 'Enrolling...';
+                button.disabled = true;
+                
+                try {
+                    // Make enrollment request
+                    const response = await fetch('/api/enroll', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            courseId: courseId
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        if (result.success) {
+                            // Successful enrollment (free course)
+                            showMessage(result.message || 'Successfully enrolled!', 'success');
+                            button.textContent = 'Enrolled';
+                            button.classList.add('btn-success');
+                            button.classList.remove('btn-primary');
+                            // Redirect to course or dashboard after brief delay
+                            setTimeout(() => {
+                                window.location.href = `/courses/${courseId}`;
+                            }, 2000);
+                        } else if (result.requiresPayment) {
+                            // Paid course - redirect to payment
+                            showMessage(`Payment required: $${result.price}`, 'info');
+                            setTimeout(() => {
+                                window.location.href = result.paymentUrl;
+                            }, 1500);
+                        } else {
+                            throw new Error(result.message || 'Enrollment failed');
+                        }
+                    } else {
+                        throw new Error(result.message || 'Enrollment failed');
+                    }
+                    
+                } catch (error) {
+                    console.error('Enrollment error:', error);
+                    showMessage(error.message || 'Enrollment failed. Please try again.', 'error');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            }
+            
+            // Show message utility
+            function showMessage(message, type = 'info') {
+                // Remove existing messages
+                const existingMessages = document.querySelectorAll('.enrollment-message');
+                existingMessages.forEach(msg => msg.remove());
+                
+                // Create message element
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `alert alert-${type} enrollment-message position-fixed`;
+                messageDiv.style.cssText = `
+                    top: 20px;
+                    right: 20px;
+                    z-index: 1050;
+                    min-width: 300px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                `;
+                messageDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>${message}</span>
+                        <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+                    </div>
+                `;
+                
+                // Add to body
+                document.body.appendChild(messageDiv);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.remove();
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

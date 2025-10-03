@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - LearnHub</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+    <!-- Include Navbar -->
+    <div th:replace="~{partials/navbar :: navbar}"></div>
+    
+    <main class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Join LearnHub! 🎓</h1>
+                <p>Create your account and start learning today</p>
+            </div>
+            
+            <!-- Error Message -->
+            <div th:if="${errorMessage}" class="alert alert-error">
+                <span th:text="${errorMessage}"></span>
+            </div>
+            
+            <form th:action="@{/register}" th:object="${user}" method="post" class="auth-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" th:field="*{firstName}" required 
+                               placeholder="Enter your first name">
+                        <span th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="error-text"></span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" th:field="*{lastName}" required 
+                               placeholder="Enter your last name">
+                        <span th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="error-text"></span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" th:field="*{username}" required 
+                           placeholder="Choose a username">
+                    <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="error-text"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" th:field="*{email}" required 
+                           placeholder="Enter your email address">
+                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-text"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" th:field="*{password}" required 
+                           placeholder="Create a strong password">
+                    <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-text"></span>
+                    <small class="form-hint">Password must be at least 6 characters long</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role">I am a:</label>
+                    <select id="role" th:field="*{role}" class="form-select">
+                        <option value="STUDENT">Student</option>
+                        <option value="TEACHER">Teacher</option>
+                    </select>
+                </div>
+                
+                <div class="form-options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" required>
+                        <span class="checkmark"></span>
+                        I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    Create Account
+                </button>
+                
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? 
+                    <a href="/login" class="auth-link">Sign in here</a>
+                </p>
+            </div>
+        </div>
+    </main>
+    
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>

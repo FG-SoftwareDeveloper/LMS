@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrollment Management - Admin Panel</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+        }
+        
+        .stats-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-icon {
+            font-size: 2.5rem;
+            opacity: 0.8;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .enrollment-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-waitlisted { background: #d1ecf1; color: #0c5460; }
+        .status-denied { background: #f8d7da; color: #721c24; }
+        .status-withdrawn { background: #e2e3e5; color: #383d41; }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+        
+        .btn-sm-custom {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 15px;
+        }
+        
+        .bulk-actions {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .modal-header-custom {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin: 1rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 1rem 0;
+            }
+            
+            .stats-card {
+                margin-bottom: 1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-users-cog me-3"></i>Enrollment Management</h1>
+                    <p class="mb-0">Manage course enrollments, approvals, and analytics</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light" onclick="exportEnrollments()">
+                        <i class="fas fa-download me-2"></i>Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-fluid mt-4">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-graduate stats-icon text-success"></i>
+                        <h3 class="mt-2" id="totalEnrollments">0</h3>
+                        <p class="text-muted mb-0">Total Enrollments</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock stats-icon text-warning"></i>
+                        <h3 class="mt-2" id="pendingApprovals">0</h3>
+                        <p class="text-muted mb-0">Pending Approvals</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-list stats-icon text-info"></i>
+                        <h3 class="mt-2" id="waitlistedStudents">0</h3>
+                        <p class="text-muted mb-0">Waitlisted</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card stats-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign stats-icon text-primary"></i>
+                        <h3 class="mt-2" id="totalRevenue">$0</h3>
+                        <p class="text-muted mb-0">Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filters Section -->
+        <div class="filter-section">
+            <h6><i class="fas fa-filter me-2"></i>Filters</h6>
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <select class="form-select" id="courseFilter">
+                        <option value="">All Courses</option>
+                        <!-- Will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="PENDING_REVIEW">Pending Review</option>
+                        <option value="WAITLISTED">Waitlisted</option>
+                        <option value="DENIED">Denied</option>
+                        <option value="WITHDRAWN">Withdrawn</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <input type="date" class="form-control" id="dateFromFilter" placeholder="From Date">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <input type="date" class="form-control" id="dateToFilter" placeholder="To Date">
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <input type="text" class="form-control" id="searchFilter" placeholder="Search student name or email...">
+                </div>
+                <div class="col-md-6">
+                    <div class="btn-group w-100">
+                        <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bulk Actions -->
+        <div class="bulk-actions" id="bulkActions">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <strong id="selectedCount">0</strong> enrollments selected
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group">
+                        <button class="btn btn-success btn-sm" onclick="bulkApprove()">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkDeny()">
+                            <i class="fas fa-times"></i> Deny
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="bulkMoveFromWaitlist()">
+                            <i class="fas fa-arrow-up"></i> Move from Waitlist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Enrollments Table -->
+        <div class="enrollment-table">
+            <table id="enrollmentsTable" class="table table-hover">
+                <thead class="bg-light">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>Student</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Enrolled Date</th>
+                        <th>Source</th>
+                        <th>Payment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be loaded via AJAX -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Enrollment Details Modal -->
+    <div class="modal fade" id="enrollmentDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title">Enrollment Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="enrollmentDetailsBody">
+                    <!-- Content loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Approval Modal -->
+    <div class="modal fade" id="approvalModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Approve Enrollment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to approve this enrollment?</p>
+                    <div class="mb-3">
+                        <label for="approvalNotes" class="form-label">Notes (optional):</label>
+                        <textarea class="form-control" id="approvalNotes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="confirmApproval()">Approve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Denial Modal -->
+    <div class="modal fade" id="denialModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Deny Enrollment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to deny this enrollment?</p>
+                    <div class="mb-3">
+                        <label for="denialReason" class="form-label">Reason (required):</label>
+                        <textarea class="form-control" id="denialReason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDenial()">Deny</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analytics Modal -->
+    <div class="modal fade" id="analyticsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header modal-header-custom">
+                    <h5 class="modal-title">Enrollment Analytics</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Enrollment Trends</h6>
+                            <div class="chart-container">
+                                <canvas id="enrollmentTrendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Status Distribution</h6>
+                            <div class="chart-container">
+                                <canvas id="statusDistributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>Popular Courses</h6>
+                            <div class="chart-container">
+                                <canvas id="popularCoursesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Revenue by Month</h6>
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="exportAnalytics()">Export Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        let enrollmentsTable;
+        let currentEnrollmentId;
+        let selectedEnrollments = [];
+        
+        // Initialize page
+        $(document).ready(function() {
+            initializeDataTable();
+            loadStatistics();
+            loadCourseFilter();
+            setupEventHandlers();
+            
+            // Refresh data every 30 seconds
+            setInterval(refreshData, 30000);
+        });
+        
+        // Initialize DataTable
+        function initializeDataTable() {
+            enrollmentsTable = $('#enrollmentsTable').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: '/admin/enrollments/data',
+                    type: 'GET',
+                    data: function(d) {
+                        d.course = $('#courseFilter').val();
+                        d.status = $('#statusFilter').val();
+                        d.dateFrom = $('#dateFromFilter').val();
+                        d.dateTo = $('#dateToFilter').val();
+                        d.search = $('#searchFilter').val();
+                    }
+                },
+                columns: [
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data) {
+                            return `<input type="checkbox" class="enrollment-checkbox" value="${data}">`;
+                        }
+                    },
+                    {
+                        data: 'user',
+                        render: function(data) {
+                            return `
+                                <div>
+                                    <strong>${data.firstName} ${data.lastName}</strong><br>
+                                    <small class="text-muted">${data.email}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        data: 'course',
+                        render: function(data) {
+                            return `
+                                <div>
+                                    <strong>${data.title}</strong><br>
+                                    <small class="text-muted">${data.category}</small>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
+                        data: 'status',
+                        render: function(data) {
+                            const statusClass = 'status-' + data.toLowerCase().replace('_', '-');
+                            return `<span class="status-badge ${statusClass}">${data.replace('_', ' ')}</span>`;
+                        }
+                    },
+                    {
+                        data: 'enrolledAt',
+                        render: function(data) {
+                            return new Date(data).toLocaleDateString();
+                        }
+                    },
+                    {
+                        data: 'source',
+                        render: function(data) {
+                            const icons = {
+                                'WEB': 'fas fa-globe',
+                                'ADMIN': 'fas fa-user-shield',
+                                'API': 'fas fa-code',
+                                'BULK': 'fas fa-users',
+                                'INVITE': 'fas fa-envelope'
+                            };
+                            return `<i class="${icons[data] || 'fas fa-question'} me-1"></i>${data}`;
+                        }
+                    },
+                    {
+                        data: 'payment',
+                        render: function(data, type, row) {
+                            if (!data) {
+                                return row.course.price > 0 ? 
+                                    '<span class="text-danger">Unpaid</span>' : 
+                                    '<span class="text-success">Free</span>';
+                            }
+                            return `<span class="text-success">$${data.amount}</span>`;
+                        }
+                    },
+                    {
+                        data: 'id',
+                        orderable: false,
+                        searchable: false,
+                        render: function(data, type, row) {
+                            let actions = `
+                                <div class="action-buttons">
+                                    <button class="btn btn-info btn-sm-custom" onclick="viewDetails(${data})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                            `;
+                            
+                            if (row.status === 'PENDING_REVIEW') {
+                                actions += `
+                                    <button class="btn btn-success btn-sm-custom" onclick="approveEnrollment(${data})">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger btn-sm-custom" onclick="denyEnrollment(${data})">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                `;
+                            }
+                            
+                            if (row.status === 'WAITLISTED') {
+                                actions += `
+                                    <button class="btn btn-primary btn-sm-custom" onclick="moveFromWaitlist(${data})">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                `;
+                            }
+                            
+                            actions += '</div>';
+                            return actions;
+                        }
+                    }
+                ],
+                pageLength: 25,
+                order: [[4, 'desc']],
+                responsive: true,
+                language: {
+                    processing: '<i class="fas fa-spinner fa-spin"></i> Loading...'
+                }
+            });
+        }
+        
+        // Load statistics
+        function loadStatistics() {
+            fetch('/admin/enrollments/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    $('#totalEnrollments').text(data.totalEnrollments.toLocaleString());
+                    $('#pendingApprovals').text(data.pendingApprovals.toLocaleString());
+                    $('#waitlistedStudents').text(data.waitlistedStudents.toLocaleString());
+                    $('#totalRevenue').text('$' + data.totalRevenue.toLocaleString());
+                })
+                .catch(error => console.error('Error loading statistics:', error));
+        }
+        
+        // Load course filter options
+        function loadCourseFilter() {
+            fetch('/admin/courses/list')
+                .then(response => response.json())
+                .then(courses => {
+                    const filter = $('#courseFilter');
+                    courses.forEach(course => {
+                        filter.append(`<option value="${course.id}">${course.title}</option>`);
+                    });
+                })
+                .catch(error => console.error('Error loading courses:', error));
+        }
+        
+        // Setup event handlers
+        function setupEventHandlers() {
+            // Select all checkbox
+            $('#selectAll').change(function() {
+                const checked = $(this).is(':checked');
+                $('.enrollment-checkbox').prop('checked', checked);
+                updateSelectedEnrollments();
+            });
+            
+            // Individual checkboxes
+            $(document).on('change', '.enrollment-checkbox', function() {
+                updateSelectedEnrollments();
+            });
+            
+            // Filter changes
+            $('#courseFilter, #statusFilter, #dateFromFilter, #dateToFilter').change(function() {
+                enrollmentsTable.ajax.reload();
+            });
+            
+            // Search input (with debounce)
+            let searchTimeout;
+            $('#searchFilter').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    enrollmentsTable.ajax.reload();
+                }, 500);
+            });
+        }
+        
+        // Update selected enrollments
+        function updateSelectedEnrollments() {
+            selectedEnrollments = $('.enrollment-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+            
+            $('#selectedCount').text(selectedEnrollments.length);
+            
+            if (selectedEnrollments.length > 0) {
+                $('#bulkActions').show();
+            } else {
+                $('#bulkActions').hide();
+            }
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            enrollmentsTable.ajax.reload();
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            $('#courseFilter, #statusFilter, #dateFromFilter, #dateToFilter, #searchFilter').val('');
+            enrollmentsTable.ajax.reload();
+        }
+        
+        // View enrollment details
+        function viewDetails(enrollmentId) {
+            fetch(`/admin/enrollments/${enrollmentId}`)
+                .then(response => response.json())
+                .then(enrollment => {
+                    const modalBody = $('#enrollmentDetailsBody');
+                    modalBody.html(`
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Student Information</h6>
+                                <p><strong>Name:</strong> ${enrollment.user.firstName} ${enrollment.user.lastName}</p>
+                                <p><strong>Email:</strong> ${enrollment.user.email}</p>
+                                <p><strong>Role:</strong> ${enrollment.user.role}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Course Information</h6>
+                                <p><strong>Title:</strong> ${enrollment.course.title}</p>
+                                <p><strong>Category:</strong> ${enrollment.course.category}</p>
+                                <p><strong>Price:</strong> $${enrollment.course.price}</p>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <h6>Enrollment Details</h6>
+                                <p><strong>Status:</strong> <span class="status-badge status-${enrollment.status.toLowerCase().replace('_', '-')}">${enrollment.status.replace('_', ' ')}</span></p>
+                                <p><strong>Source:</strong> ${enrollment.source}</p>
+                                <p><strong>Enrolled:</strong> ${new Date(enrollment.enrolledAt).toLocaleString()}</p>
+                                <p><strong>Token:</strong> <code>${enrollment.enrollmentToken}</code></p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Additional Information</h6>
+                                ${enrollment.waitlistPosition ? `<p><strong>Waitlist Position:</strong> ${enrollment.waitlistPosition}</p>` : ''}
+                                ${enrollment.approvedBy ? `<p><strong>Approved By:</strong> ${enrollment.approvedBy.firstName} ${enrollment.approvedBy.lastName}</p>` : ''}
+                                ${enrollment.approvedAt ? `<p><strong>Approved At:</strong> ${new Date(enrollment.approvedAt).toLocaleString()}</p>` : ''}
+                                ${enrollment.notes ? `<p><strong>Notes:</strong> ${enrollment.notes}</p>` : ''}
+                            </div>
+                        </div>
+                        ${enrollment.payment ? `
+                            <div class="mt-3">
+                                <h6>Payment Information</h6>
+                                <div class="alert alert-success">
+                                    <p><strong>Amount:</strong> $${enrollment.payment.amount}</p>
+                                    <p><strong>Status:</strong> ${enrollment.payment.status}</p>
+                                    <p><strong>Date:</strong> ${new Date(enrollment.payment.createdAt).toLocaleString()}</p>
+                                    ${enrollment.payment.voucherCode ? `<p><strong>Voucher:</strong> ${enrollment.payment.voucherCode}</p>` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+                    `);
+                    
+                    new bootstrap.Modal(document.getElementById('enrollmentDetailsModal')).show();
+                })
+                .catch(error => {
+                    console.error('Error loading enrollment details:', error);
+                    alert('Error loading enrollment details');
+                });
+        }
+        
+        // Approve enrollment
+        function approveEnrollment(enrollmentId) {
+            currentEnrollmentId = enrollmentId;
+            new bootstrap.Modal(document.getElementById('approvalModal')).show();
+        }
+        
+        // Confirm approval
+        function confirmApproval() {
+            const notes = $('#approvalNotes').val();
+            
+            fetch(`/admin/enrollments/approve/${currentEnrollmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ notes: notes })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('approvalModal')).hide();
+                    enrollmentsTable.ajax.reload();
+                    loadStatistics();
+                    showToast('Enrollment approved successfully', 'success');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error approving enrollment:', error);
+                alert('Error approving enrollment');
+            });
+        }
+        
+        // Deny enrollment
+        function denyEnrollment(enrollmentId) {
+            currentEnrollmentId = enrollmentId;
+            new bootstrap.Modal(document.getElementById('denialModal')).show();
+        }
+        
+        // Confirm denial
+        function confirmDenial() {
+            const reason = $('#denialReason').val().trim();
+            
+            if (!reason) {
+                alert('Please provide a reason for denial');
+                return;
+            }
+            
+            fetch(`/admin/enrollments/deny/${currentEnrollmentId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('denialModal')).hide();
+                    enrollmentsTable.ajax.reload();
+                    loadStatistics();
+                    showToast('Enrollment denied', 'warning');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error denying enrollment:', error);
+                alert('Error denying enrollment');
+            });
+        }
+        
+        // Move from waitlist
+        function moveFromWaitlist(enrollmentId) {
+            if (confirm('Move this student from waitlist to enrolled?')) {
+                fetch(`/admin/enrollments/move-from-waitlist/${enrollmentId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        enrollmentsTable.ajax.reload();
+                        loadStatistics();
+                        showToast('Student moved from waitlist', 'success');
+                    } else {
+                        alert('Error: ' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error moving from waitlist:', error);
+                    alert('Error moving from waitlist');
+                });
+            }
+        }
+        
+        // Bulk operations
+        function bulkApprove() {
+            if (selectedEnrollments.length === 0) return;
+            
+            if (confirm(`Approve ${selectedEnrollments.length} selected enrollments?`)) {
+                bulkOperation('approve');
+            }
+        }
+        
+        function bulkDeny() {
+            if (selectedEnrollments.length === 0) return;
+            
+            const reason = prompt('Enter reason for denial:');
+            if (!reason) return;
+            
+            bulkOperation('deny', { reason: reason });
+        }
+        
+        function bulkMoveFromWaitlist() {
+            if (selectedEnrollments.length === 0) return;
+            
+            if (confirm(`Move ${selectedEnrollments.length} selected students from waitlist?`)) {
+                bulkOperation('move-from-waitlist');
+            }
+        }
+        
+        function bulkOperation(action, data = {}) {
+            fetch(`/admin/enrollments/bulk/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    enrollmentIds: selectedEnrollments,
+                    ...data
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    enrollmentsTable.ajax.reload();
+                    loadStatistics();
+                    $('#selectAll').prop('checked', false);
+                    updateSelectedEnrollments();
+                    showToast(`Bulk ${action} completed successfully`, 'success');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error(`Error in bulk ${action}:`, error);
+                alert(`Error in bulk ${action}`);
+            });
+        }
+        
+        // Export enrollments
+        function exportEnrollments() {
+            const params = new URLSearchParams({
+                course: $('#courseFilter').val() || '',
+                status: $('#statusFilter').val() || '',
+                dateFrom: $('#dateFromFilter').val() || '',
+                dateTo: $('#dateToFilter').val() || '',
+                search: $('#searchFilter').val() || ''
+            });
+            
+            window.open(`/admin/enrollments/export?${params.toString()}`, '_blank');
+        }
+        
+        // Show analytics
+        function showAnalytics() {
+            new bootstrap.Modal(document.getElementById('analyticsModal')).show();
+            loadAnalyticsCharts();
+        }
+        
+        // Load analytics charts
+        function loadAnalyticsCharts() {
+            // Implementation for Chart.js charts would go here
+            // This is a placeholder for the actual chart implementations
+        }
+        
+        // Refresh data
+        function refreshData() {
+            enrollmentsTable.ajax.reload(null, false);
+            loadStatistics();
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            // Create and show toast notification
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check' : type === 'warning' ? 'exclamation-triangle' : 'info'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        // Add analytics button to header
+        document.querySelector('.admin-header .col-md-4').innerHTML += `
+            <button class="btn btn-light ms-2" onclick="showAnalytics()">
+                <i class="fas fa-chart-bar me-2"></i>Analytics
+            </button>
+        `;
+        
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Use - LearnHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body data-theme="light">
+    <div th:replace="~{partials/navbar :: navbar}"></div>
+    
+    <main class="container" style="padding: 4rem 0; max-width: 800px;">
+        <h1>Terms of Use</h1>
+        <p><em>Last updated: October 2, 2025</em></p>
+        
+        <section>
+            <h2>Acceptance of Terms</h2>
+            <p>By using our LMS and gaming platform, you agree to these terms and conditions.</p>
+        </section>
+        
+        <section>
+            <h2>User Responsibilities</h2>
+            <p>Users are responsible for maintaining the confidentiality of their account information.</p>
+        </section>
+        
+        <section>
+            <h2>Contact Information</h2>
+            <p>For questions about these terms, contact us at <a href="mailto:support@learnhub.com">support@learnhub.com</a></p>
+        </section>
+    </main>
+    
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>

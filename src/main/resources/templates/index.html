@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnHub - Learn Through Interactive Gaming</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body data-theme="light">
+    <!-- Navigation -->
+    <div th:replace="~{partials/navbar :: navbar}"></div>
+    
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <h1 class="hero-title">
+                Learn Through<br>
+                <span style="color: var(--secondary-color);">Interactive Gaming</span>
+            </h1>
+            <p class="hero-subtitle">
+                Experience the future of education with our innovative LMS platform that combines 
+                comprehensive courses with engaging game-based learning experiences.
+            </p>
+            
+            <div class="hero-buttons">
+                <a href="/signup" class="btn btn-primary" sec:authorize="!isAuthenticated()">
+                    🚀 Start Learning
+                </a>
+                <a href="/dashboard" class="btn btn-primary" sec:authorize="isAuthenticated()">
+                    📚 Go to Dashboard
+                </a>
+                <a href="#demo" class="btn btn-outline">
+                    ▶️ Watch Demo
+                </a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-number">10,000+</div>
+                <div class="stat-label">Active Learners</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">500+</div>
+                <div class="stat-label">Interactive Courses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">200+</div>
+                <div class="stat-label">Educational Games</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Section -->
+    <section class="features">
+        <div class="features-container">
+            <h2 class="section-title">Why Choose LearnHub?</h2>
+            <p class="section-subtitle">
+                Our platform combines the best of traditional learning with innovative 
+                gaming experiences.
+            </p>
+            
+            <div class="features-grid">
+                <!-- Interactive Courses -->
+                <div class="feature-card">
+                    <div class="feature-icon">📖</div>
+                    <h3 class="feature-title">Interactive Courses</h3>
+                    <p class="feature-description">
+                        Engage with comprehensive course content designed for diverse learning styles.
+                    </p>
+                </div>
+                
+                <!-- Game-Based Learning -->
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3 class="feature-title">Game-Based Learning</h3>
+                    <p class="feature-description">
+                        Learn through interactive games that make education fun and engaging.
+                    </p>
+                </div>
+                
+                <!-- Achievements & Rewards -->
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h3 class="feature-title">Achievements & Rewards</h3>
+                    <p class="feature-description">
+                        Earn badges and competitive leaderboards to stay motivated throughout your learning journey.
+                    </p>
+                </div>
+                
+                <!-- Community Learning -->
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 class="feature-title">Community Learning</h3>
+                    <p class="feature-description">
+                        Connect with fellow learners and participate in collaborative learning experiences.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="testimonials-container">
+            <h2 class="section-title">What Our Learners Say</h2>
+            <p class="section-subtitle">Join thousands of satisfied learners worldwide</p>
+            
+            <div class="testimonials-grid">
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "The game-based approach made learning programming concepts so much more 
+                        enjoyable and memorable. I've never been more engaged!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">SC</div>
+                        <div class="author-info">
+                            <h4>Sarah Chen</h4>
+                            <p>Software Developer</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "LearnHub helped me master new technologies while having fun. The certification is 
+                        a brilliant idea!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">MR</div>
+                        <div class="author-info">
+                            <h4>Michael Rodriguez</h4>
+                            <p>Data Analyst</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card">
+                    <div class="stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "The interactive assessments and real-time feedback accelerated my learning 
+                        journey significantly."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">EJ</div>
+                        <div class="author-info">
+                            <h4>Emily Johnson</h4>
+                            <p>UX Designer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="cta-container">
+            <h2 class="cta-title">Ready to Transform Your Learning?</h2>
+            <p class="cta-subtitle">
+                Join our community and start your journey towards mastering new skills 
+                through engaging game-based experiences.
+            </p>
+            <a href="/register" class="btn btn-white">
+                🎯 Get Started Free
+            </a>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <div th:replace="~{partials/footer :: footer}"></div>
+    
+    <!-- JavaScript -->
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>

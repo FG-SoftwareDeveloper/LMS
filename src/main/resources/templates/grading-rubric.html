@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grading Rubric - LearnHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body data-theme="light">
+    <div th:replace="~{partials/navbar :: navbar}"></div>
+    
+    <main class="container" style="padding: 4rem 0; max-width: 900px;">
+        <h1>Grading Rubric</h1>
+        <p>Understanding how your mini-game performance translates to academic assessment.</p>
+        
+        <div class="rubric-table" style="overflow-x: auto; margin: 2rem 0;">
+            <table style="width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 0.5rem; overflow: hidden;">
+                <thead style="background: var(--primary-color); color: white;">
+                    <tr>
+                        <th style="padding: 1rem; text-align: left;">Score Range</th>
+                        <th style="padding: 1rem; text-align: left;">Grade</th>
+                        <th style="padding: 1rem; text-align: left;">Description</th>
+                        <th style="padding: 1rem; text-align: left;">LMS Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 1rem;">90-100%</td>
+                        <td style="padding: 1rem; font-weight: 600; color: var(--success-color);">Excellent</td>
+                        <td style="padding: 1rem;">Mastery demonstrated with efficient problem-solving</td>
+                        <td style="padding: 1rem;">✅ Passed</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 1rem;">75-89%</td>
+                        <td style="padding: 1rem; font-weight: 600; color: var(--accent-color);">Good</td>
+                        <td style="padding: 1rem;">Good understanding with minor areas for improvement</td>
+                        <td style="padding: 1rem;">✅ Passed</td>
+                    </tr>
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 1rem;">60-74%</td>
+                        <td style="padding: 1rem; font-weight: 600; color: var(--warning-color);">Satisfactory</td>
+                        <td style="padding: 1rem;">Basic understanding demonstrated</td>
+                        <td style="padding: 1rem;">⚠️ Needs Review</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 1rem;">Below 60%</td>
+                        <td style="padding: 1rem; font-weight: 600; color: var(--error-color);">Needs Improvement</td>
+                        <td style="padding: 1rem;">Concept requires additional study and practice</td>
+                        <td style="padding: 1rem;">❌ Not Passed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <section>
+            <h2>Assessment Criteria</h2>
+            <ul>
+                <li><strong>Accuracy:</strong> Correctness of solutions and code implementation</li>
+                <li><strong>Efficiency:</strong> Time taken to complete challenges</li>
+                <li><strong>Problem-solving:</strong> Approach and methodology used</li>
+                <li><strong>Code Quality:</strong> Clean, readable, and well-structured code</li>
+            </ul>
+        </section>
+    </main>
+    
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>

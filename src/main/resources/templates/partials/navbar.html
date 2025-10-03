@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <nav class="navbar" th:fragment="navbar">
+        <div class="navbar-container">
+            <!-- Brand/Logo -->
+            <a href="/" class="navbar-brand">
+                <span>📚</span>
+                <span>LearnHub</span>
+            </a>
+            
+            <!-- Navigation Links -->
+            <ul class="navbar-nav">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/courses" class="nav-link">Courses</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
+                
+                <!-- Authentication Links -->
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/login" class="nav-link btn-login">Login</a>
+                </li>
+                <li sec:authorize="!isAuthenticated()">
+                    <a href="/signup" class="nav-link btn-signup">Sign Up</a>
+                </li>
+                
+                <!-- User Menu (when logged in) -->
+                <li sec:authorize="isAuthenticated()" class="user-menu">
+                    <div class="dropdown">
+                        <button class="dropdown-toggle user-avatar" type="button">
+                            <span sec:authentication="principal.fullName">User</span>
+                            <span class="avatar-icon">👤</span>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="/dashboard" class="dropdown-item">Dashboard</a>
+                            <a href="/profile" class="dropdown-item">Profile</a>
+                            <div class="dropdown-divider"></div>
+                            <form action="/logout" method="post" style="display: inline;">
+                                <button type="submit" class="dropdown-item logout-btn">Logout</button>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                
+                <!-- Theme Toggle -->
+                <li>
+                    <button id="theme-toggle" class="theme-toggle" title="Toggle Theme">
+                        <span id="theme-icon">🌙</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</body>
+</html>
