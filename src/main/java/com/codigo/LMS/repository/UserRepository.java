@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     
     List<User> findByRoleOrderByCreatedAtDesc(Role role);
+    List<User> findTop10ByOrderByIdDesc();
     
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role")
     long countByRole(@Param("role") Role role);
