@@ -1,6 +1,9 @@
 package com.codigo.LMS.controller;
 
 import com.codigo.LMS.entity.*;
+import com.codigo.LMS.repository.UserRepository;
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +18,89 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class ApiController {
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private DataSource dataSource;
+    @GetMapping("/dev/users")
+    public ResponseEntity<List<Map<String, Object>>> listRecentUsers(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        List<User> recent = userRepository.findTop10ByOrderByIdDesc();
+        List<Map<String, Object>> dto = new ArrayList<>();
+        for (User u : recent) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("id", u.getId());
+            row.put("username", u.getUsername());
+            row.put("email", u.getEmail());
+            row.put("role", u.getRole().name());
+            dto.add(row);
+        }
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/dev/db")
+    public ResponseEntity<Map<String, Object>> dbInfo(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        Map<String, Object> info = new HashMap<>();
+        try (var conn = dataSource.getConnection(); var stmt = conn.createStatement()) {
+            var meta = conn.getMetaData();
+            info.put("jdbcUrl", meta.getURL());
+            info.put("dbProduct", meta.getDatabaseProductName());
+            info.put("dbVersion", meta.getDatabaseProductVersion());
+            try (var rs = stmt.executeQuery("select current_database(), current_user, current_schema")) {
+                if (rs.next()) {
+                    info.put("currentDatabase", rs.getString(1));
+                    info.put("currentUser", rs.getString(2));
+                    info.put("currentSchema", rs.getString(3));
+                }
+            }
+            try (var rs2 = stmt.executeQuery("select current_setting('neon.branch_name', true)")) {
+                if (rs2.next()) {
+                    info.put("neonBranch", rs2.getString(1));
+                }
+            }
+        } catch (Exception e) {
+            info.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(info);
+        }
+        return ResponseEntity.ok(info);
+    }
+
+    @GetMapping("/dev/verify-user")
+    public ResponseEntity<Map<String, Object>> verifyUser(@AuthenticationPrincipal User current,
+                                                          @RequestParam(required = false) String email,
+                                                          @RequestParam(required = false) String username) {
+        if (current == null) {
+            return ResponseEntity.status(401).build();
+        }
+        Map<String, Object> body = new HashMap<>();
+        if ((email == null || email.isBlank()) && (username == null || username.isBlank())) {
+            body.put("error", "Provide email or username");
+            return ResponseEntity.badRequest().body(body);
+        }
+        com.codigo.LMS.entity.User found = null;
+        if (email != null && !email.isBlank()) {
+            found = userRepository.findByEmail(email).orElse(null);
+        } else if (username != null && !username.isBlank()) {
+            found = userRepository.findByUsername(username).orElse(null);
+        }
+        if (found == null) {
+            body.put("exists", false);
+            return ResponseEntity.ok(body);
+        }
+        body.put("exists", true);
+        body.put("id", found.getId());
+        body.put("username", found.getUsername());
+        body.put("email", found.getEmail());
+        body.put("role", found.getRole().name());
+        body.put("createdAt", found.getCreatedAt());
+        return ResponseEntity.ok(body);
+    }
     
     @GetMapping("/user/profile")
     public ResponseEntity<Map<String, Object>> getUserProfile(@AuthenticationPrincipal User user) {

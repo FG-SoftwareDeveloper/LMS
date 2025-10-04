@@ -19,18 +19,25 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Create a test user if none exists
-        if (userRepository.count() == 0) {
-            User testUser = new User();
-            testUser.setUsername("testuser");
-            testUser.setEmail("test@example.com");
-            testUser.setPassword(passwordEncoder.encode("password123"));
-            testUser.setFirstName("Test");
-            testUser.setLastName("User");
-            testUser.setRole(Role.STUDENT);
-            
-            userRepository.save(testUser);
-            System.out.println("Test user created: username=testuser, password=password123");
+        // Ensure a known demo user exists for login testing
+        final String demoUsername = "demo";
+        final String demoEmail = "demo@example.com";
+        final String demoPassword = "password123"; // dev-only
+
+        boolean demoExists = userRepository.existsByUsername(demoUsername) || userRepository.existsByEmail(demoEmail);
+        if (!demoExists) {
+            User demoUser = new User();
+            demoUser.setUsername(demoUsername);
+            demoUser.setEmail(demoEmail);
+            demoUser.setPassword(passwordEncoder.encode(demoPassword));
+            demoUser.setFirstName("Demo");
+            demoUser.setLastName("User");
+            demoUser.setRole(Role.STUDENT);
+
+            userRepository.save(demoUser);
+            System.out.println("Seeded demo user -> username=" + demoUsername + ", email=" + demoEmail + ", password=" + demoPassword);
+        } else {
+            System.out.println("Demo user already present (" + demoUsername + ", " + demoEmail + ")");
         }
     }
 }
